@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Infinite Clicker</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: white;
+      background: radial-gradient(circle at center, #1b2a6b, #050014 60%, #000);
+      overflow: hidden;
+    }
+
+    .stars {
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(white 1px, transparent 1px),
+        radial-gradient(white 1px, transparent 1px);
+      background-size: 80px 80px, 140px 140px;
+      animation: moveStars 12s linear infinite;
+      opacity: 0.6;
+    }
+
+    @keyframes moveStars {
+      from { transform: translateY(0); }
+      to { transform: translateY(80px); }
+    }
+
+    .game {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      height: 100vh;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 48px;
+      text-shadow: 0 0 20px #00eaff;
+    }
+
+    .earth {
+      width: 230px;
+      height: 230px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 110px;
+      background: radial-gradient(circle at 35% 30%, #6ff, #1478ff 45%, #06377d 80%);
+      box-shadow: 0 0 40px #00eaff, inset -25px -25px 40px #001a44;
+      transition: transform 0.1s;
+    }
+
+    .earth:active {
+      transform: scale(0.92);
+    }
+
+    .sidebar {
+      width: 310px;
+      background: rgba(0, 0, 0, 0.55);
+      padding: 20px;
+      box-shadow: -5px 0 30px #000;
+      overflow-y: auto;
+    }
+
+    button {
+      padding: 12px;
+      margin: 6px 0;
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #00eaff;
+      color: #001124;
+    }
+
+    button:hover {
+      background: #8df6ff;
+    }
+
+    .upgrade {
+      background: rgba(255, 255, 255, 0.12);
+      padding: 12px;
+      border-radius: 15px;
+      margin-bottom: 12px;
+    }
+
+    input {
+      width: 92%;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 10px;
+      border: none;
+    }
+
+    .menu {
+      position: absolute;
+      top: 15px;
+      right: 330px;
+    }
+
+    .menu-box {
+      display: none;
+      position: absolute;
+      right: 0;
+      background: #111;
+      padding: 12px;
+      border-radius: 12px;
+      width: 190px;
+    }
+  </style>
+</head>
+<body>
+  <div class="stars"></div>
+
+  <div class="game">
+    <div class="main">
+      <h1>🌌 Infinite Clicker 🌌</h1>
+      <h2>Earth Coins: <span id="coins">0</span></h2>
+      <p>Coins per click: <span id="power">1</span></p>
+      <button class="earth" onclick="clickEarth()">🌍</button>
+      <p>Click Earth to collect coins!</p>
+    </div>
+
+    <div class="menu">
+      <button onclick="toggleMenu()">⋮</button>
+      <div class="menu-box" id="menuBox">
+        <button onclick="toggleAutoClicker()">Auto Clicker: <span id="autoStatus">OFF</span></button>
+        <button onclick="resetGame()">Reset Game</button>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <h2>Upgrades</h2>
+
+      <div class="upgrade">
+        <h3>Power Click</h3>
+        <p>+1 coin per click</p>
+        <p>Cost: <span id="powerCost">25</span></p>
+        <button onclick="buyPowerClick()">Buy</button>
+      </div>
+
+      <div class="upgrade">
+        <h3>Auto Clicker</h3>
+        <p>Gets coins by itself</p>
+        <p>Cost: <span id="autoCost">100</span></p>
+        <button onclick="buyAutoClicker()">Buy</button>
+      </div>
+
+      <div class="upgrade">
+        <h3>Upgrade Builder AI</h3>
+        <input id="upgradeName" placeholder="Upgrade name">
+        <input id="upgradePower" placeholder="What does it do?">
+        <button onclick="startAIBuilder()">Build Upgrade</button>
+        <p id="aiText">AI is ready.</p>
+      </div>
+
+      <div id="customUpgrades"></div>
+    </div>
+  </div>
+
+  <script>
+    let coins = 0;
+    let power = 1;
+    let powerCost = 25;
+
+    let autoClickers = 0;
+    let autoCost = 100;
+    let autoOn = true;
+
+    function updateScreen() {
+      document.getElementById("coins").textContent = Math.floor(coins);
+      document.getElementById("power").textContent = power;
+      document.getElementById("powerCost").textContent = powerCost;
+      document.getElementById("autoCost").textContent = autoCost;
+      document.getElementById("autoStatus").textContent = autoOn ? "ON" : "OFF";
+    }
+
+    function clickEarth() {
+      coins += power;
+      updateScreen();
+    }
+
+    function buyPowerClick() {
+      if (coins >= powerCost) {
+        coins -= powerCost;
+        power += 1;
+        powerCost += 25;
+        updateScreen();
+      } else {
+        alert("Not enough Earth Coins!");
+      }
+    }
+
+    function buyAutoClicker() {
+      if (coins >= autoCost) {
+        coins -= autoCost;
+        autoClickers += 1;
+        autoCost += 75;
+        updateScreen();
+      } else {
+        alert("Not enough Earth Coins!");
+      }
+    }
+
+    function toggleAutoClicker() {
+      autoOn = !autoOn;
+      updateScreen();
+    }
+
+    setInterval(function () {
+      if (autoOn) {
+        coins += autoClickers;
+        updateScreen();
+      }
+    }, 1000);
+
+    function toggleMenu() {
+      let menu = document.getElementById("menuBox");
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
+
+    function startAIBuilder() {
+      let name = document.getElementById("upgradeName").value;
+      let powerText = document.getElementById("upgradePower").value;
+
+      if (name === "" || powerText === "") {
+        alert("Tell the AI the name and what it does!");
+        return;
+      }
+
+      document.getElementById("aiText").textContent =
+        "AI is building " + name + "... finished in 2 minutes!";
+
+      setTimeout(function () {
+        createCustomUpgrade(name, powerText);
+        document.getElementById("aiText").textContent =
+          "AI finished building " + name + "!";
+      }, 120000);
+    }
+
+    function createCustomUpgrade(name, powerText) {
+      let box = document.createElement("div");
+      box.className = "upgrade";
+
+      box.innerHTML =
+        "<h3>" + name + "</h3>" +
+        "<p>" + powerText + "</p>" +
+        "<p>Cost: 250</p>" +
+        "<button onclick='buyCustomUpgrade()'>Buy</button>";
+
+      document.getElementById("customUpgrades").appendChild(box);
+    }
+
+    function buyCustomUpgrade() {
+      if (coins >= 250) {
+        coins -= 250;
+        power += 5;
+        updateScreen();
+        alert("Custom upgrade bought! +5 coins per click!");
+      } else {
+        alert("Not enough Earth Coins!");
+      }
+    }
+
+    function resetGame() {
+      coins = 0;
+      power = 1;
+      powerCost = 25;
+      autoClickers = 0;
+      autoCost = 100;
+      autoOn = true;
+      document.getElementById("customUpgrades").innerHTML = "";
+      updateScreen();
+    }
+
+    updateScreen();
+  </script>
+</body>
+</html>
